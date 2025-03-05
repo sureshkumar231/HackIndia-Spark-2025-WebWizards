@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebWizards | Certificate Validator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='certificate.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+    <header>
+        <nav>
+            <h1>WebWizards</h1>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="#about">About Us</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="https://github.com/sureshkumar231" target="_blank">GitHub</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <h2>BlockChain Certificate Validator</h2>
+            <p>Generate a unique hash ID and QR code for your certificate.</p>
+            <input type="text" id="certificateData" placeholder="Generate Hash ID">
+            <button onclick="generateHashQR()">Generate QR Code</button>
+            <p id="hashId"></p>
+            <div id="qrcode"></div>
+            <button onclick="downloadQRCode()">Download QR Code</button>
+        </div>
+    </main>
+
+    <section id="about" class="team-section">
+        <h2>Meet the WebWizards Team</h2>
+        <div class="team-container">
+            <div class="team-card">
+                <h3>Sureshkumar P</h3>
+                <p>Blockchain Developer/ Mobile App Developer</p>
+                <a href="www.linkedin.com/in/suresh-kumar-a975b62ba" target="_blank">
+                </a>
+            </div>
+            <div class="team-card">
+                <h3>Tamilarasan V</h3>
+                <p>Debugger and Checker</p>
+                <a href="https://linkedin.com/in/tamilarasan" target="_blank">
+                </a>
+            </div>
+            <div class="team-card">
+                <h3>Sakthivel A</h3>
+                <p>UI/UX Designer</p>
+                <a href="https://www.linkedin.com/in/sakthivel-a-31a6402a5?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank">
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>© 2025 WebWizards | <strong>Muthayammal College of Engineering</strong> | HackIndia 2025</p>
+        <p>Contact Us: <a href="tel:9486929689">9486929689</a></p>
+    </footer>
+
+    <script>
+        function generateHashQR() {
+            let data = document.getElementById("certificateData").value.trim();
+            if (!data) {
+                alert("Please enter certificate data.");
+                return;
+            }
+
+            fetch('/generate-hash', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data })
+            })
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById("hashId").innerText = "Hash ID: " + result.hash;
+                document.getElementById("qrcode").innerHTML = "";
+                new QRCode(document.getElementById("qrcode"), result.hash);
+                saveToExcel(data, result.hash);
+            })
+            .catch(error => console.error("Error generating hash:", error));
+        }
+
+        function downloadQRCode() {
+            let qrCodeCanvas = document.querySelector("#qrcode canvas");
+            if (!qrCodeCanvas) {
+                alert("Generate a QR code first.");
+                return;
+            }
+            
+            let link = document.createElement("a");
+            link.href = qrCodeCanvas.toDataURL("image/png");
+            link.download = "certificate_hash.png";
+            link.click();
+        }
+
+        function saveToExcel(certData, hashId) {
+            fetch('/save-excel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ certData, hashId })
+            })
+            .then(response => response.json())
+            .then(result => console.log("Excel file updated: ", result.message))
+            .catch(error => console.error("Error saving Excel file:", error));
+        }
+    </script>
+
+</body>
+</html>
+
+
